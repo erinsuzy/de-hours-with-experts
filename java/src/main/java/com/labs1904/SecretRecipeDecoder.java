@@ -1,6 +1,7 @@
 package com.labs1904;
 
 
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,25 +49,68 @@ public class SecretRecipeDecoder {
 
     /**
      * Given a string named str, use the Caesar encoding above to return the decoded string.
+     *
      * @param str
      * @return
      */
+
     public static String decodeString(String str) {
-        // TODO: implement me
-        return "1 cup";
+        StringBuilder decoded = new StringBuilder();
+        for (char ch : str.toCharArray()) {
+            String encodedChar = String.valueOf(ch);
+            decoded.append(ENCODING.getOrDefault(encodedChar, encodedChar));
+        }
+        return decoded.toString();
     }
 
     /**
      * Given an ingredient, decode the amount and description, and return a new Ingredient
+     *
      * @param line
      * @return
      */
     public static Ingredient decodeIngredient(String line) {
-        // TODO: implement me
-        return new Ingredient("1 cup", "butter");
+        String[] parts = line.split("#");
+        String decodedAmount = decodeString(parts[0].trim());
+        String decodedDescription = decodeString(parts[1].trim());
+        return new Ingredient(decodedAmount, decodedDescription);
     }
 
-    public static void main(String[] args) {
-        // TODO: implement me
-    }
-}
+
+       public static void decodeRecipe(String inputFilePath, String outputFilePath) {
+           File outputFile = new File(outputFilePath);
+           File parentDir = outputFile.getParentFile();
+           if (!parentDir.exists()) {
+               if (!parentDir.mkdirs()) {
+                   System.err.println("Failed to create directory: " + parentDir.getAbsolutePath());
+                   return;
+               }
+           }
+
+           try (BufferedReader reader = new BufferedReader(new FileReader(inputFilePath));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
+
+               String line;
+               while ((line = reader.readLine()) != null) {
+                   Ingredient decodedIngredient = SecretRecipeDecoder.decodeIngredient(line);
+                   String decodedLine = decodedIngredient.getAmount() + " " + decodedIngredient.getDescription();
+                   writer.write(decodedLine);
+                   writer.newLine();
+               }
+
+               System.out.println("Decoded recipe has been saved to " + outputFilePath);
+
+           } catch (IOException e) {
+               System.err.println("Error processing the file: " + e.getMessage());
+           }
+       }
+
+       public static void main(String[] args) {
+           String inputFilePath = "C:/Users/erins/IdeaProjects/hoursWithExperts/java/src/main/resources/secret_recipe.txt";  // Absolute path to your input file
+           String outputFilePath = "C:/Users/erins/IdeaProjects/hoursWithExperts/java/src/main/resources/decoded_recipe.txt";  // Absolute path to your output file
+
+           decodeRecipe(inputFilePath, outputFilePath);
+       }
+   }
+
+
